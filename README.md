@@ -28,24 +28,24 @@
 
 ## 在线使用
 
-<https://docx-format-studio.app.workbuddy.host/>
+**<https://yang12343211.github.io/docx-format-studio/>** —— 点开就能用，手机也能开，不需要安装任何东西。
+
+备用地址：<https://docx-format-studio.app.workbuddy.host/>
 
 ### 部署到 GitHub Pages
 
-这是个纯静态站，仓库根目录就是站点根目录（`index.html` 在最外层），不需要任何构建步骤：
-
-1. 推到 GitHub 仓库（默认分支 `main`）
-2. 仓库 **Settings → Pages**
-3. **Source** 选 `Deploy from a branch`，**Branch** 选 `main` + `/ (root)`，保存
-4. 等一分多钟，访问 `https://<你的用户名>.github.io/<仓库名>/`
+本仓库已经开启了 Pages（`main` 分支 / 根目录），每次推送到 `main` 会自动重新构建。
+如果要在别处重新部署：这是个纯静态站，仓库根目录就是站点根目录（`index.html` 在最外层），**不需要任何构建步骤**——
+仓库 **Settings → Pages** → Source 选 `Deploy from a branch` → Branch 选 `main` + `/ (root)` → 保存，
+等一分多钟访问 `https://<用户名>.github.io/<仓库名>/`。
 
 仓库里带了 `.nojekyll`，这样 GitHub Pages 不会用 Jekyll 处理、下划线开头的文件（如 `tests/_validate-docx.js`）也不会被跳过。
 
 线上还能直接跑浏览器自检页（它们用的都是相对路径，放在子路径下也能用）：
 
 ```
-https://<你的用户名>.github.io/<仓库名>/tests/heading-selftest.html
-https://<你的用户名>.github.io/<仓库名>/tests/preset-selftest.html
+https://yang12343211.github.io/docx-format-studio/tests/heading-selftest.html
+https://yang12343211.github.io/docx-format-studio/tests/preset-selftest.html
 ```
 
 ## 分享给别人
