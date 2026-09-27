@@ -30,8 +30,6 @@
 
 **<https://yang12343211.github.io/docx-format-studio/>** —— 点开就能用，手机也能开，不需要安装任何东西。
 
-备用地址：<https://docx-format-studio.app.workbuddy.host/>
-
 ### 部署到 GitHub Pages
 
 本仓库已经开启了 Pages（`main` 分支 / 根目录），每次推送到 `main` 会自动重新构建。
