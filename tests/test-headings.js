@@ -71,7 +71,7 @@ function testHeuristic() {
 
 /* ============================ 2. 端到端：构造文档 ============================ */
 
-const { buildDocx, DOC_ITEMS, PLAIN_ITEMS, RULE_ITEMS, CHAPTER_ITEMS, CHAPTER_FIRST_ITEMS, PRE_BLANKED_ITEMS, BARE_STYLES_XML } = require('./lib/build-docx.js');
+const { buildDocx, DOC_ITEMS, PLAIN_ITEMS, RULE_ITEMS, CHAPTER_ITEMS, CHAPTER_FIRST_ITEMS, PRE_BLANKED_ITEMS, GRID_ITEMS, GRID_SECTPR, NOGRID_SECTPR, BARE_STYLES_XML } = require('./lib/build-docx.js');
 
 /* 「课设模板规范」预设现在自带「章版式」（另起一页 + 前后各空一行）。
    2~7 节只关心标题识别、格式写入、缩进继承、水平线清理这些事，
@@ -448,6 +448,65 @@ async function testChapterLayout() {
   check('「中文学术论文通用规范」预设不带这项版式', !ver.spec.chapter);
 }
 
+/* ============================ 9. 关闭文档网格 ============================ */
+
+async function testDisableDocGrid() {
+  console.log('\n=== 9. 自动关闭文档网格（标题被撑高的元凶） ===');
+
+  /* 开着「指定行网格」的文档 → 应当被关掉 */
+  const buf = await buildDocx(GRID_ITEMS, { sectPr: GRID_SECTPR });
+  const ab = buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength);
+  const res = await DocxCore.applyFormat(ab, DocxCore.BUILTIN_PRESETS['report-cn'].spec, NO_CHAPTER);
+
+  check('报告统计到 1 处网格被关闭', res.report.docGridOff === 1, res.report.docGridOff);
+  check('报告记录了原网格类型', res.report.docGridBefore === 'lines', res.report.docGridBefore);
+
+  const zip = await global.JSZip.loadAsync(res.data);
+  const xml = await zip.file('word/document.xml').async('string');
+  check('产物里 docGrid 已无 w:type 属性（= 无网格）',
+    /<w:docGrid(?![^>]*w:type)[^>]*>/.test(xml), (xml.match(/<w:docGrid[^>]*>/) || [])[0]);
+  check('产物里不含 w:type="lines"', !/w:type="lines"/.test(xml));
+  check('linePitch 等无关属性未被顺手删掉', /w:linePitch="312"/.test(xml));
+  check('正文与标题段落仍然完好', getParas(xml).length === GRID_ITEMS.length);
+
+  /* 关掉这个开关时应原样保留网格 */
+  const keep = await DocxCore.applyFormat(ab, DocxCore.BUILTIN_PRESETS['report-cn'].spec,
+    { disableGrid: false, chapter: NO_CHAPTER.chapter });
+  const xml2 = await (await global.JSZip.loadAsync(keep.data)).file('word/document.xml').async('string');
+  check('取消勾选后网格原样保留', /w:type="lines"/.test(xml2));
+  check('取消勾选后 docGridOff 为 0', keep.report.docGridOff === 0, keep.report.docGridOff);
+
+  /* 本来就无网格的文档：不该被写进任何改动 */
+  const noGrid = await buildDocx(GRID_ITEMS, { sectPr: NOGRID_SECTPR });
+  const nm = noGrid.buffer.slice(noGrid.byteOffset, noGrid.byteOffset + noGrid.byteLength);
+  const res3 = await DocxCore.applyFormat(nm, DocxCore.BUILTIN_PRESETS['report-cn'].spec, NO_CHAPTER);
+  check('本来无网格的文档统计为 0（不虚报）', res3.report.docGridOff === 0, res3.report.docGridOff);
+  const xml3 = await (await global.JSZip.loadAsync(res3.data)).file('word/document.xml').async('string');
+  check('本来无网格的文档产物仍无 w:type', !/[^>]*w:type=/.test((xml3.match(/<w:docGrid[^>]*>/) || [''])[0]));
+
+  /* 纯函数单测：多种 type 取值 */
+  const { DOMParser: DP } = require('@xmldom/xmldom');
+  ['lines', 'linesAndChars', 'snapToChars'].forEach(function (t) {
+    const dom = new DP().parseFromString(
+      '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>'
+      + '<w:sectPr><w:docGrid w:type="' + t + '" w:linePitch="312"/></w:sectPr></w:body></w:document>', 'text/xml');
+    const r = DocxCore.disableDocGrid(dom);
+    check('纯函数：type="' + t + '" 被关闭', r.changed === 1 && r.modeBefore === t, JSON.stringify(r));
+  });
+
+  const domDefault = new DP().parseFromString(
+    '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>'
+    + '<w:sectPr><w:docGrid w:type="default"/></w:sectPr></w:body></w:document>', 'text/xml');
+  check('纯函数：type="default" 视为无网格、跳过',
+    DocxCore.disableDocGrid(domDefault).changed === 0);
+
+  const domEmpty = new DP().parseFromString(
+    '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>'
+    + '<w:sectPr><w:pgSz w:w="11906" w:h="16838"/></w:sectPr></w:body></w:document>', 'text/xml');
+  check('纯函数：没有 docGrid 元素也不报错',
+    DocxCore.disableDocGrid(domEmpty).changed === 0);
+}
+
 /* ============================ 运行 ============================ */
 
 (async function () {
@@ -459,6 +518,7 @@ async function testChapterLayout() {
   await testHeadingIndent();
   await testRemoveRules();
   await testChapterLayout();
+  await testDisableDocGrid();
   console.log('\n---------------------------------------');
   console.log('  通过 ' + pass + ' 项，失败 ' + fail + ' 项');
   console.log('---------------------------------------\n');

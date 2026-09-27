@@ -274,7 +274,8 @@
       skipTableIndent: $('opt-tableindent').checked,
       heuristic: $('opt-heuristic').checked,
       clearManual: $('opt-clear').checked,
-      removeRules: $('opt-rules') ? $('opt-rules').checked : true
+      removeRules: $('opt-rules') ? $('opt-rules').checked : true,
+      disableGrid: $('opt-grid') ? $('opt-grid').checked : true
     };
 
     /* 让浏览器有机会把 loading 画面画出来 */
@@ -330,6 +331,15 @@
     }
     if (report.removedRules > 0) {
       notes.push('清掉了 <b>' + report.removedRules + '</b> 条<b>遗留的水平线</b>。这类灰横杠是网页或 AI 对话里的「---」分隔线粘进 Word 后留下的（在 XML 里是带 <code>o:hr</code> 标记的图形），不属于文档内容；如果你确实需要它们，把下面的「清掉遗留的水平线」取消勾选再处理一次。');
+    }
+    if (report.docGridOff > 0) {
+      var gmode = { lines: '指定行网格', linesAndChars: '行和字符网格', snapToChars: '仅指定字符网格' };
+      var gname = gmode[report.docGridBefore] || report.docGridBefore;
+      notes.push('检测到文档开着<b>「' + esc(gname) + '」</b>，已<b>关闭网格</b>（' + report.docGridOff + ' 处节设置）。' +
+        '开着网格时，标题这类「倍数行距」的段落行高会被吸附到网格倍数上——网格间距 15.6 磅的话，' +
+        '18 磅的一级标题会被从约 23 磅撑到约 31 磅，标题发虚、页面松散；而正文多用固定值行距、不受影响，' +
+        '所以症状往往只是「标题比别人矮／比别人高」。关掉后行距回归字体本身，版面更紧凑。' +
+        '如果你就是需要对齐网格，把「关闭文档网格」取消勾选再处理一次。');
     }
     if (report.chapterBlanks > 0 || report.chapterBreaks > 0) {
       var cp = [];

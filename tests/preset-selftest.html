@@ -116,10 +116,11 @@
 
     log('\n=== 4. 端到端：套用到真实 docx 并检查产物 XML ===');
     /* 拦截页面真正调用的 applyFormat，捕获它交给下载按钮的那份字节 */
-    var capturedBytes = null, capturedSpec = null;
+    var capturedBytes = null, capturedSpec = null, capturedOptions = null;
     var realApply = win.DocxCore.applyFormat;
     win.DocxCore.applyFormat = async function (buf, spec, opts) {
       capturedSpec = JSON.parse(JSON.stringify(spec));
+      capturedOptions = JSON.parse(JSON.stringify(opts || {}));
       var r = await realApply.call(win.DocxCore, buf, spec, opts);
       capturedBytes = new win.Uint8Array(r.data);
       return r;
@@ -167,6 +168,25 @@
       !!pNormal && /w:eastAsia="宋体"/.test(pNormal) && /<w:sz w:val="24"\/>/.test(pNormal) &&
       /<w:jc w:val="both"\/>/.test(pNormal) && /w:line="400" w:lineRule="exact"/.test(pNormal),
       pNormal && pNormal.slice(0, 300));
+
+    /* ---- 界面选项 → 引擎的接线（Node 测不到这一段，只能在这里验） ---- */
+    var gridBox = doc.getElementById('opt-grid');
+    t('界面上有「关闭文档网格」开关', !!gridBox, gridBox && gridBox.outerHTML.slice(0, 120));
+    t('「关闭文档网格」默认勾选', !!gridBox && gridBox.checked === true);
+
+    t('页面实际把 disableGrid 传给了引擎（勾选态）',
+      !!capturedOptions && capturedOptions.disableGrid === true,
+      capturedOptions && JSON.stringify(capturedOptions));
+
+    /* 取消勾选后再跑一次，确认它真的会影响引擎（防「写错 key 导致开关失效」） */
+    gridBox.checked = false;
+    capturedBytes = null;
+    capturedOptions = null;
+    doc.getElementById('run').click();
+    await waitFor(function () { return capturedBytes !== null; }, 25000, '第二次生成完成');
+    t('取消勾选后 disableGrid 变为 false（开关真的接上了）',
+      !!capturedOptions && capturedOptions.disableGrid === false,
+      capturedOptions && JSON.stringify(capturedOptions));
 
     log('\n---------------------------------------');
     log('  通过 ' + pass + ' 项，失败 ' + fail + ' 项');

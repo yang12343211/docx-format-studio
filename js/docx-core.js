@@ -990,6 +990,53 @@
   }
 
   /* ================================================================== *
+   * 五·五、关闭文档网格
+   *
+   *   为什么值得单独做一件事：
+   *     sectPr 里的 <w:docGrid w:type="lines"> 会开启「指定行网格」。开了之后，
+   *     凡是「倍数行距」的段落（标题基本都是单倍行距），实际行高会被向上吸附到
+   *     网格间距（w:linePitch）的整数倍。中文文档常见 linePitch=312 twips=15.6 磅，
+   *     于是 18 磅的一级标题会被从约 23 磅撑到约 31 磅 —— 标题越发虚、页面越发松。
+   *
+   *   为什么「正文看着没事、只有标题遭殃」：
+   *     正文多用「固定值行距」（w:lineRule="exact"），固定行距不参与网格吸附。
+   *     所以同一份文档里，正文行高正常、标题却被撑开，用户会描述成
+   *     「明明设置一样，为什么它更紧凑」。
+   *
+   *   实现要点：
+   *     ① 把 w:type 属性整个删掉，而不是写成 type="default" —— 「无网格」正是
+   *        属性的缺省状态，删掉才和天然无网格的文档字节一致。
+   *     ② 只处理确实开了网格的（有 w:type 且不是 default），本来就无网格的不动，
+   *        免得往用户文档里写无意义的改动。
+   *     ③ 节标题（header/footer）里的 sectPr 一起处理，否则页眉页脚内部仍按网格排。
+   * ================================================================== */
+
+  function disableDocGrid(docDom) {
+    var list = docDom.getElementsByTagNameNS ?
+      docDom.getElementsByTagNameNS(W_NS, 'sectPr') : docDom.getElementsByTagName('w:sectPr');
+
+    var changed = 0, sections = 0, modeBefore = '';
+
+    for (var i = 0; i < list.length; i++) {
+      var sectPr = list[i];
+      sections++;
+      var dg = kid(sectPr, 'docGrid');
+      if (!dg) continue;
+
+      var t = attr(dg, 'type');
+      if (t === null || t === '' || t === 'default') continue;   /* 本来就是无网格 */
+
+      if (modeBefore) modeBefore += ' / ';
+      modeBefore += t;
+
+      dropAttr(dg, 'type');
+      changed++;
+    }
+
+    return { changed: changed, sections: sections, modeBefore: modeBefore };
+  }
+
+  /* ================================================================== *
    * 六·七、一级标题（章）的附加版式
    *
    *   课设这类模板常额外要求：
@@ -1221,7 +1268,8 @@
       heuristic: true,
       clearManual: true,
       syncStyles: true,
-      removeRules: true
+      removeRules: true,
+      disableGrid: true
     }, options || {});
 
     var JSZipRef = getZip();
@@ -1269,6 +1317,8 @@
       stylesCreated: [],
       stylesReused: [],
       removedRules: 0,
+      docGridOff: 0,
+      docGridBefore: '',
       chapterBreaks: 0,
       chapterBlanks: 0,
       pageApplied: false,
@@ -1291,6 +1341,15 @@
     if (options.removeRules) {
       var ruleRes = removeHorizontalRules(docDom);
       reports.removedRules = ruleRes.removed;
+    }
+
+    /* ---------- 1.4 关闭文档网格 ----------
+       必须放在套用页面设置之前：套页面时可能按规范写回 docGrid，
+       先关掉才不会被重新打开。 */
+    if (options.disableGrid) {
+      var gridRes = disableDocGrid(docDom);
+      reports.docGridOff = gridRes.changed;
+      reports.docGridBefore = gridRes.modeBefore;
     }
 
     /* ---------- 1. 页面设置 ---------- */
@@ -1908,6 +1967,7 @@
   return {
     analyzeTemplate: analyzeTemplate,
     applyFormat: applyFormat,
+    disableDocGrid: disableDocGrid,
     describeSpec: describeSpec,
     parseStylesXml: parseStylesXml,
     BUILTIN_PRESETS: BUILTIN_PRESETS,

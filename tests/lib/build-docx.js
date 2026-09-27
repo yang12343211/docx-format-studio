@@ -67,7 +67,8 @@ const DOC_ITEMS = [
   { name: '正文段落', text: '正文段落，这里是普通的说明文字，讲清楚了系统要做什么。' }
 ];
 
-function documentXml(items) {
+function documentXml(items, opts) {
+  opts = opts || {};
   const body = items.map(function (it) {
     const pPr = it.style ? ('<w:pPr><w:pStyle w:val="' + it.style + '"/></w:pPr>') : '';
     const runs = it.text
@@ -82,9 +83,10 @@ function documentXml(items) {
     + ' xmlns:o="urn:schemas-microsoft-com:office:office"'
     + ' xmlns:w10="urn:schemas-microsoft-com:office:word">'
     + '<w:body>' + body
-    + '<w:sectPr><w:pgSz w:w="11906" w:h="16838"/>'
-    + '<w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440" w:header="851" w:footer="992" w:gutter="0"/>'
-    + '</w:sectPr></w:body></w:document>';
+    + (opts.sectPr || ('<w:sectPr><w:pgSz w:w="11906" w:h="16838"/>'
+      + '<w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440" w:header="851" w:footer="992" w:gutter="0"/>'
+      + '</w:sectPr>'))
+    + '</w:body></w:document>';
 }
 
 /** Word 把 HTML / markdown 的 <hr> 存成这个形状（o:hr = horizontal rule） */
@@ -105,6 +107,25 @@ const RULE_ITEMS = [
   { text: '第2章 系统设计' }
 ];
 
+/** 开着「指定行网格」的文档：这条 sectPr 会让标题这类倍数行距的段落被撑高 */
+const GRID_SECTPR = '<w:sectPr><w:pgSz w:w="11906" w:h="16838"/>'
+  + '<w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440" w:header="851" w:footer="992" w:gutter="0"/>'
+  + '<w:docGrid w:type="lines" w:linePitch="312" w:charSpace="0"/>'
+  + '</w:sectPr>';
+
+/** 本来就是「无网格」的文档（w:type 缺省）—— 引擎不该去动它 */
+const NOGRID_SECTPR = '<w:sectPr><w:pgSz w:w="11906" w:h="16838"/>'
+  + '<w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440" w:header="851" w:footer="992" w:gutter="0"/>'
+  + '<w:docGrid w:linePitch="312" w:charSpace="0"/>'
+  + '</w:sectPr>';
+
+const GRID_ITEMS = [
+  { text: '第1章 绪论' },
+  { text: '正文段落，这里是普通的说明文字，讲清楚了系统要做什么。' },
+  { text: '1.1 课题背景' },
+  { text: '第2章 系统设计' }
+];
+
 /** 返回 Uint8Array */
 async function buildDocx(items, opts) {
   items = items || DOC_ITEMS;
@@ -114,7 +135,7 @@ async function buildDocx(items, opts) {
   zip.file('[Content_Types].xml', CT_XML);
   zip.file('_rels/.rels', RELS_XML);
   zip.file('word/_rels/document.xml.rels', DOC_RELS_XML);
-  zip.file('word/document.xml', documentXml(items));
+  zip.file('word/document.xml', documentXml(items, opts));
   zip.file('word/styles.xml', opts.styles || STYLES_XML);
   return await zip.generateAsync({ type: 'uint8array' });
 }
@@ -175,4 +196,6 @@ const SHIFTED_ITEMS = [
 ];
 
 module.exports = { buildDocx, documentXml, DOC_ITEMS, SHIFTED_ITEMS, PLAIN_ITEMS, RULE_ITEMS,
-  CHAPTER_ITEMS, CHAPTER_FIRST_ITEMS, PRE_BLANKED_ITEMS, HR_PICT, STYLES_XML, BARE_STYLES_XML };
+  CHAPTER_ITEMS, CHAPTER_FIRST_ITEMS, PRE_BLANKED_ITEMS, GRID_ITEMS,
+  GRID_SECTPR, NOGRID_SECTPR,
+  HR_PICT, STYLES_XML, BARE_STYLES_XML };
