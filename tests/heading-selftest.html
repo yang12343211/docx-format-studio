@@ -7,7 +7,7 @@
 </head>
 <body>
 <pre id="out">RUNNING</pre>
-<iframe id="f" src="/index.html"></iframe>
+<iframe id="f" src="../index.html"></iframe>
 <script>
 (async function () {
   var lines = [], out = document.getElementById('out');
@@ -72,7 +72,7 @@
     /* 载入夹具 → 等文档真正就绪（chip 上出现文件名且提示已就绪）→ 点运行 → 等产物 */
     async function loadFixture(name) {
       capturedBytes = null; capturedReport = null;
-      var ab = await (await fetch('/tests/fixtures/' + name)).arrayBuffer();
+      var ab = await (await fetch('fixtures/' + name)).arrayBuffer();
       var fl = new win.File([ab], name, { type: win.DocxCore.DOCX_MIME });
       var d = new win.DataTransfer();
       d.items.add(fl);

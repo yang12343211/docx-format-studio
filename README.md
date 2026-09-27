@@ -30,6 +30,45 @@
 
 <https://docx-format-studio.app.workbuddy.host/>
 
+### 部署到 GitHub Pages
+
+这是个纯静态站，仓库根目录就是站点根目录（`index.html` 在最外层），不需要任何构建步骤：
+
+1. 推到 GitHub 仓库（默认分支 `main`）
+2. 仓库 **Settings → Pages**
+3. **Source** 选 `Deploy from a branch`，**Branch** 选 `main` + `/ (root)`，保存
+4. 等一分多钟，访问 `https://<你的用户名>.github.io/<仓库名>/`
+
+仓库里带了 `.nojekyll`，这样 GitHub Pages 不会用 Jekyll 处理、下划线开头的文件（如 `tests/_validate-docx.js`）也不会被跳过。
+
+线上还能直接跑浏览器自检页（它们用的都是相对路径，放在子路径下也能用）：
+
+```
+https://<你的用户名>.github.io/<仓库名>/tests/heading-selftest.html
+https://<你的用户名>.github.io/<仓库名>/tests/preset-selftest.html
+```
+
+## 分享给别人
+
+三种方式，按方便程度排：
+
+| 方式 | 别人需要做什么 |
+| --- | --- |
+| **发在线链接** | 点开就用，手机也能开。不需要装任何东西 |
+| **发单文件 HTML** | 收到一个 `.html` 文件，双击用浏览器打开即可（CSS/JS 全内联，不依赖其它文件、不联网） |
+| **发离线压缩包** | 解压到任意位置，双击里面的 `index.html` |
+
+后两种都是纯前端、断网可用，文档不上传服务器。自己打包：
+
+```bash
+npm run dist     # 产物写到 dist/
+#   dist/DOCX排版工具-单文件版.html   把 index.html + css + js 内联成一个 .html
+#   dist/DOCX排版工具-离线版.zip      解压后双击里面的 index.html
+```
+
+打包脚本会做自检：内联后若还存在任何外部 `js`/`css` 引用、或源码里出现会破坏内联的
+`</script`、`<!--` 序列，就直接报错退出，不会静默产出坏文件。
+
 ## 本地运行
 
 纯静态站点，任意静态服务器即可：
@@ -86,6 +125,7 @@ js/format-builder.js    规范编辑器（预设/手动/模板反解）与预览
 js/app.js               上传、执行、结果说明
 js/jszip.min.js         vendored 第三方库
 tests/                  Node 测试套件 + 浏览器自检页 + 夹具生成
+tools/build-dist.js     打包脚本（单文件版 / 离线压缩包）
 samples/                输入样例（模板/目标文档）
 ```
 

@@ -17,6 +17,7 @@
     "test:headings": "node tests/test-headings.js",
     "test:preset": "node tests/check-report-preset.js",
     "fixtures": "node tests/make-fixtures.js",
+    "dist": "node tools/build-dist.js",
     "serve": "python -m http.server 8899 --bind 127.0.0.1",
     "format:one": "node tests/format-one.js"
   },
