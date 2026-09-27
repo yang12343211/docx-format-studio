@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>课程设计报告规范预设 · 浏览器自测</title>
+<style>body{font:13px/1.6 monospace;margin:12px}#f{width:0;height:0;border:0;position:absolute;left:-9999px}</style>
+</head>
+<body>
+<pre id="out">RUNNING</pre>
+<iframe id="f" src="/index.html"></iframe>
+<script>
+(async function () {
+  var lines = [];
+  var out = document.getElementById('out');
+  function log(s) { lines.push(String(s)); out.textContent = lines.join('\n'); }
+  var pass = 0, fail = 0;
+  function t(name, cond, extra) {
+    if (cond) { pass++; log('  \u2713 ' + name); }
+    else { fail++; log('  \u2717 ' + name + (extra !== undefined ? '  -> ' + extra : '')); }
+  }
+  function waitFor(fn, ms, label) {
+    return new Promise(function (res, rej) {
+      var t0 = Date.now();
+      (function poll() {
+        var v;
+        try { v = fn(); } catch (e) { v = false; }
+        if (v) return res(v);
+        if (Date.now() - t0 > ms) return rej(new Error('等待超时: ' + label));
+        setTimeout(poll, 50);
+      })();
+    });
+  }
+  function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+
+  try {
+    var f = document.getElementById('f');
+    var win = f.contentWindow, doc;
+
+    await waitFor(function () {
+      if (!f.contentDocument || f.contentDocument.readyState !== 'complete') return false;
+      var w = f.contentWindow;
+      return w.DocxCore && w.FormatBuilder && w.FormatBuilder.getSpec && f.contentDocument.getElementById('run')
+        && f.contentDocument.querySelector('#fb-fields select') ? true : false;
+    }, 25000, '页面与模块就绪');
+
+    doc = f.contentDocument;
+    win = f.contentWindow;
+    log('=== 1. 切到「手动设置格式」并套用预设 ===');
+
+    var manualTab = doc.querySelector('.mode-tab[data-mode="manual"]');
+    t('存在「手动设置格式」标签', !!manualTab);
+    if (manualTab) manualTab.click();
+    await sleep(120);
+    t('手动面板已展开', doc.getElementById('pane-manual') && !doc.getElementById('pane-manual').hidden);
+
+    var btn = doc.querySelector('#fb-presets [data-preset="report-cn"]');
+    t('存在「课程设计报告规范」预设按钮', !!btn, btn && btn.textContent.trim());
+    t('按钮文案为「课程设计报告规范」', !!btn && btn.textContent.trim() === '课程设计报告规范', btn && btn.textContent.trim());
+    btn.click();
+    await sleep(120);
+
+    log('\n=== 2. 预设回填到表单后的 spec ===');
+    var spec = win.FormatBuilder.getSpec();
+    var m = spec.margin;
+    t('页边距 上 3.5cm (1985)', m.top === 1985, m.top);
+    t('页边距 下 3.0cm (1701)', m.bottom === 1701, m.bottom);
+    t('页边距 左 2.5cm (1418)', m.left === 1418, m.left);
+    t('页边距 右 2.0cm (1134)', m.right === 1134, m.right);
+    t('页眉 2.5cm (1418) / 页脚 2.0cm (1134)', m.header === 1418 && m.footer === 1134, m.header + '/' + m.footer);
+    t('纸张 A4 (11906x16838)', spec.page.w === 11906 && spec.page.h === 16838);
+
+    var n = spec.normal;
+    t('正文 中文宋体', n.rPr.font.eastAsia === '宋体', n.rPr.font.eastAsia);
+    t('正文 西文 Times New Roman', n.rPr.font.ascii === 'Times New Roman', n.rPr.font.ascii);
+    t('正文 小四 12磅 (sz=24)', n.rPr.size === 24, n.rPr.size);
+    t('正文 行距固定值 20磅 (line=400 exact)', n.pPr.spacing.line === 400 && n.pPr.spacing.lineRule === 'exact', JSON.stringify(n.pPr.spacing));
+    t('正文 首行缩进 2 字符', n.pPr.ind.firstLineChars === 200 && n.pPr.ind.firstLine === 480, JSON.stringify(n.pPr.ind));
+    t('正文 两端对齐', n.pPr.align === 'both', n.pPr.align);
+
+    var h1 = spec.headings[1];
+    t('一级标题 黑体 小二 18磅 (sz=36)', h1.rPr.font.eastAsia === '黑体' && h1.rPr.size === 36, h1.rPr.font.eastAsia + '/' + h1.rPr.size);
+    t('一级标题 居中', h1.pPr.align === 'center', h1.pPr.align);
+    t('一级标题 段前0/段后0/单倍行距(240)', (h1.pPr.spacing.before || 0) === 0 && (h1.pPr.spacing.after || 0) === 0 && h1.pPr.spacing.line === 240 && h1.pPr.spacing.lineRule === 'auto', JSON.stringify(h1.pPr.spacing));
+
+    var h2 = spec.headings[2];
+    t('二级标题 黑体 小三 15磅 (sz=30)', h2.rPr.font.eastAsia === '黑体' && h2.rPr.size === 30, h2.rPr.font.eastAsia + '/' + h2.rPr.size);
+    t('二级标题 段前12磅(240)/段后8磅(160)/单倍行距', h2.pPr.spacing.before === 240 && h2.pPr.spacing.after === 160 && h2.pPr.spacing.line === 240, JSON.stringify(h2.pPr.spacing));
+
+    var h3 = spec.headings[3];
+    t('三级标题 黑体 四号 14磅 (sz=28)', h3.rPr.font.eastAsia === '黑体' && h3.rPr.size === 28, h3.rPr.font.eastAsia + '/' + h3.rPr.size);
+    t('三级标题 段前8磅(160)/段后6磅(120)/单倍行距', h3.pPr.spacing.before === 160 && h3.pPr.spacing.after === 120 && h3.pPr.spacing.line === 240, JSON.stringify(h3.pPr.spacing));
+    t('三级标题 不加粗', !h3.rPr.bold);
+
+    t('图题表题 居中且五号(21)', spec.caption.pPr.align === 'center' && spec.caption.rPr.size === 21, spec.caption.rPr.size);
+
+    log('\n=== 3. 表单控件回填（用户所见） ===');
+    function fieldVal(styleKey, field) {
+      var tab = doc.querySelector('#fb-style-tabs [data-style="' + styleKey + '"]');
+      if (tab) tab.click();
+      var el = doc.querySelector('#fb-fields [data-f="' + field + '"]');
+      return el ? el.value : null;
+    }
+    t('一级标题：字号下拉 = 36 (小二)', fieldVal('h1', 'size') === '36', fieldVal('h1', 'size'));
+    t('一级标题：对齐 = center', fieldVal('h1', 'align') === 'center', fieldVal('h1', 'align'));
+    t('二级标题：字号下拉 = 30 (小三)', fieldVal('h2', 'size') === '30', fieldVal('h2', 'size'));
+    t('三级标题：字号下拉 = 28 (四号)', fieldVal('h3', 'size') === '28', fieldVal('h3', 'size'));
+    t('正文：行距下拉 = exact (固定值)', fieldVal('normal', 'lineMode') === 'exact', fieldVal('normal', 'lineMode'));
+    t('正文：行距数值 = 20 磅', fieldVal('normal', 'lineValue') === '20', fieldVal('normal', 'lineValue'));
+    t('正文：首行缩进 = 2 字符', fieldVal('normal', 'indent') === '2', fieldVal('normal', 'indent'));
+    t('页面：上边距 = 3.5cm', (function () {
+      var el = doc.querySelector('#fb-page [data-p="top"]'); return el && el.value === '3.5';
+    })());
+    t('页面：左边距 = 2.5cm', (function () {
+      var el = doc.querySelector('#fb-page [data-p="left"]'); return el && el.value === '2.5';
+    })());
+
+    log('\n=== 4. 端到端：套用到真实 docx 并检查产物 XML ===');
+    /* 拦截页面真正调用的 applyFormat，捕获它交给下载按钮的那份字节 */
+    var capturedBytes = null, capturedSpec = null;
+    var realApply = win.DocxCore.applyFormat;
+    win.DocxCore.applyFormat = async function (buf, spec, opts) {
+      capturedSpec = JSON.parse(JSON.stringify(spec));
+      var r = await realApply.call(win.DocxCore, buf, spec, opts);
+      capturedBytes = new win.Uint8Array(r.data);
+      return r;
+    };
+
+    var buf = await (await fetch('/samples/target.docx')).arrayBuffer();
+    var file = new win.File([buf], 'target.docx', { type: win.DocxCore.DOCX_MIME });
+    var dt = new win.DataTransfer();
+    dt.items.add(file);
+    var input = doc.getElementById('file-doc');
+    input.files = dt.files;
+    input.dispatchEvent(new win.Event('change', { bubbles: true }));
+    await sleep(300);
+    t('目标文档已载入', !!doc.getElementById('chip-doc') && !doc.getElementById('chip-doc').hidden);
+
+    doc.getElementById('run').click();
+    await waitFor(function () { return capturedBytes !== null; }, 25000, '生成完成');
+    await sleep(200);
+    t('页面确实调用了排版引擎并产出字节', !!capturedBytes && capturedBytes.length > 1000, capturedBytes && capturedBytes.length);
+    t('下载按钮已可用', !doc.getElementById('download').disabled);
+    t('页面实际提交的规范 = 预设回填结果（手动模式）',
+      !!capturedSpec && capturedSpec.margin.top === 1985 && capturedSpec.headings[1].rPr.size === 36,
+      capturedSpec && JSON.stringify(capturedSpec.margin));
+
+    var zip = await win.JSZip.loadAsync(capturedBytes);
+    var xml = await zip.file('word/document.xml').async('string');
+    t('产物为有效 docx（含 document.xml）', xml.length > 500, xml.length);
+
+    t('产物页边距 上1985/右1134/下1701/左1418',
+      /<w:pgMar[^>]*w:top="1985"/.test(xml) && /<w:pgMar[^>]*w:right="1134"/.test(xml) &&
+      /<w:pgMar[^>]*w:bottom="1701"/.test(xml) && /<w:pgMar[^>]*w:left="1418"/.test(xml),
+      (xml.match(/<w:pgMar[^>]*>/) || [''])[0]);
+    t('产物页眉1418 / 页脚1134',
+      /<w:pgMar[^>]*w:header="1418"/.test(xml) && /<w:pgMar[^>]*w:footer="1134"/.test(xml));
+
+    var ps = [], re = /<w:p\b[\s\S]*?<\/w:p>/g, mm;
+    while ((mm = re.exec(xml))) ps.push(mm[0]);
+    var pH1 = ps.find(function (p) { return /w:val="Heading1"/.test(p); });
+    var pNormal = ps.find(function (p) { return /w:val="Normal"/.test(p) && /firstLineChars="200"/.test(p); });
+
+    t('产物：一级标题 黑体+小二(36)+居中',
+      !!pH1 && /w:eastAsia="黑体"/.test(pH1) && /<w:sz w:val="36"\/>/.test(pH1) && /<w:jc w:val="center"\/>/.test(pH1),
+      pH1 && pH1.slice(0, 240));
+    t('产物：正文 宋体+小四(24)+两端对齐+固定行距20磅',
+      !!pNormal && /w:eastAsia="宋体"/.test(pNormal) && /<w:sz w:val="24"\/>/.test(pNormal) &&
+      /<w:jc w:val="both"\/>/.test(pNormal) && /w:line="400" w:lineRule="exact"/.test(pNormal),
+      pNormal && pNormal.slice(0, 300));
+
+    log('\n---------------------------------------');
+    log('  通过 ' + pass + ' 项，失败 ' + fail + ' 项');
+    log('  DONE pass=' + pass + ' fail=' + fail);
+    log('---------------------------------------');
+  } catch (e) {
+    log('\nEXCEPTION ' + (e && e.stack || e));
+    log('DONE pass=' + pass + ' fail=' + (fail + 1));
+  }
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>文档格式自动排版 · DOCX Format Studio</title>
+<link rel="stylesheet" href="css/style.css?v=20260927-4">
+</head>
+<body>
+
+<div class="bg-orb orb-1"></div>
+<div class="bg-orb orb-2"></div>
+
+<header class="hero">
+  <div class="hero-inner">
+    <div class="badge">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 13h6"/><path d="M9 17h4"/></svg>
+      DOCX FORMAT STUDIO
+    </div>
+    <h1>文档格式<span class="grad">自动排版</span></h1>
+    <p class="hero-sub">
+      传一份格式已经正确的文档当模板，或者直接手动设定一、二、三级标题和正文的格式 —— 再上传你要交的那份，页边距、字体、字号、行距、缩进一键全部对齐。
+    </p>
+    <div class="hero-tags">
+      <span class="tag">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        文件仅在本机浏览器处理，不上传服务器
+      </span>
+      <span class="tag">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg>
+        兼容 Word 与 WPS 的 .docx
+      </span>
+      <span class="tag">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7V4h16v3"/><path d="M9 20h6"/><path d="M12 4v16"/></svg>
+        段落文字一字不改，只调格式
+      </span>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- ═══════════ 步骤 1 ═══════════ -->
+  <section class="card" id="card-template">
+    <div class="card-head">
+      <div class="step-no">1</div>
+      <div>
+        <h2>设定格式规范</h2>
+        <p class="card-desc">两种方式二选一：传一份格式已经正确的文档当模板，或者直接在这里逐项设置。</p>
+      </div>
+    </div>
+
+    <div class="mode-tabs" role="tablist">
+      <button class="mode-tab active" data-mode="upload" role="tab">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5"/><path d="M12 3v12"/></svg>
+        上传模板文档
+      </button>
+      <button class="mode-tab" data-mode="manual" role="tab">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7V4h16v3"/><path d="M9 20h6"/><path d="M12 4v16"/></svg>
+        手动设置格式
+      </button>
+    </div>
+
+    <!-- ── 模式 A：上传模板 ── -->
+    <div class="mode-pane" id="pane-upload">
+      <div class="dropzone" id="dz-template" data-kind="template">
+        <input type="file" accept=".docx" hidden id="file-template">
+        <div class="dz-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5"/><path d="M12 3v12"/></svg>
+        </div>
+        <div class="dz-title">把模板文件拖到这里</div>
+        <div class="dz-sub">或 <span class="link">点击选择文件</span> · 支持 .docx</div>
+      </div>
+
+      <div class="file-chip" id="chip-template" hidden>
+        <div class="chip-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+        </div>
+        <div class="chip-body">
+          <div class="chip-name" id="name-template"></div>
+          <div class="chip-meta" id="meta-template"></div>
+        </div>
+        <button class="chip-x" data-clear="template" title="移除">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <div class="alt-line">
+        老师没给范文？<button class="link-btn" id="use-preset">直接套用内置的学术论文通用规范</button>
+      </div>
+    </div>
+
+    <!-- ── 模式 B：手动设置 ── -->
+    <div class="mode-pane" id="pane-manual" hidden>
+
+      <div class="fb-presets" id="fb-presets">
+        <span class="fb-presets-label">快速套用</span>
+        <button data-preset="thesis-cn">中文学术论文规范</button>
+        <button data-preset="report-cn">课程设计报告规范</button>
+      </div>
+
+      <div class="fb-layout">
+        <div class="fb-left">
+          <div class="fb-tabs" id="fb-style-tabs">
+            <button class="fb-tab active" data-style="normal">正文</button>
+            <button class="fb-tab" data-style="h1">一级标题</button>
+            <button class="fb-tab" data-style="h2">二级标题</button>
+            <button class="fb-tab" data-style="h3">三级标题</button>
+            <button class="fb-tab" data-style="caption">图题表题</button>
+          </div>
+          <div id="fb-fields"></div>
+        </div>
+
+        <div class="fb-right">
+          <div class="fb-preview-label">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            效果预览
+          </div>
+          <div class="fb-preview" id="fb-preview">
+            <div class="pv-line pv-h1" id="pv-h1">第一章　绪论</div>
+            <div class="pv-line pv-h2" id="pv-h2">1.1　研究背景</div>
+            <div class="pv-line pv-h3" id="pv-h3">1.1.1　现状分析</div>
+            <div class="pv-line pv-body" id="pv-body">高校实验室是培养人才的重要场所，设备管理信息化势在必行，本课题即源于这一实际需求。</div>
+            <div class="pv-line pv-caption" id="pv-caption">图 1-1　系统总体架构图</div>
+          </div>
+        </div>
+      </div>
+
+      <details class="options">
+        <summary>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 3h16v18H4z"/><path d="M8 7h8M8 11h8M8 15h5"/></svg>
+          页面设置（纸张与页边距）
+        </summary>
+        <div class="fb-grid fb-grid-page" id="fb-page"></div>
+      </details>
+
+    </div>
+  </section>
+
+  <!-- ═══════════ 识别结果 ═══════════ -->
+  <section class="card spec-card" id="card-spec" hidden>
+    <div class="card-head">
+      <div class="step-no soft">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+      </div>
+      <div>
+        <h2>已从模板中识别出的规范</h2>
+        <p class="card-desc">下面就是即将套用到目标文档上的格式。确认无误后再进行下一步。</p>
+      </div>
+    </div>
+
+    <div class="spec-pages" id="spec-pages"></div>
+
+    <div class="spec-table-wrap">
+      <table class="spec-table">
+        <thead>
+          <tr>
+            <th>样式</th><th>字体</th><th>字号</th><th>字形</th>
+            <th>对齐</th><th>行距</th><th>段前/段后</th><th>缩进</th>
+          </tr>
+        </thead>
+        <tbody id="spec-tbody"></tbody>
+      </table>
+    </div>
+
+    <div class="spec-warn" id="spec-warn" hidden></div>
+  </section>
+
+  <!-- ═══════════ 步骤 2 ═══════════ -->
+  <section class="card" id="card-doc">
+    <div class="card-head">
+      <div class="step-no">2</div>
+      <div>
+        <h2>上传要处理的文档</h2>
+        <p class="card-desc">把你写好的、格式还很乱的那份丢进来。原文件不会有任何改动。</p>
+      </div>
+    </div>
+
+    <div class="dropzone" id="dz-doc" data-kind="doc">
+      <input type="file" accept=".docx" hidden id="file-doc">
+      <div class="dz-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5"/><path d="M12 3v12"/></svg>
+      </div>
+      <div class="dz-title">把待处理文档拖到这里</div>
+      <div class="dz-sub">或 <span class="link">点击选择文件</span> · 支持 .docx（含 WPS 另存的）</div>
+    </div>
+
+    <div class="file-chip" id="chip-doc" hidden>
+      <div class="chip-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+      </div>
+      <div class="chip-body">
+        <div class="chip-name" id="name-doc"></div>
+        <div class="chip-meta" id="meta-doc"></div>
+      </div>
+      <button class="chip-x" data-clear="doc" title="移除">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+  </section>
+
+  <!-- ═══════════ 步骤 3 ═══════════ -->
+  <section class="card" id="card-run">
+    <div class="card-head">
+      <div class="step-no">3</div>
+      <div>
+        <h2>套用并下载</h2>
+        <p class="card-desc">点击下面的大按钮，几秒后就能拿到排好版的文档。</p>
+      </div>
+    </div>
+
+    <details class="options">
+      <summary>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9v0a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        高级选项
+      </summary>
+      <div class="opt-grid">
+        <label class="opt"><input type="checkbox" id="opt-page" checked><span><b>套用页面设置</b><i>页边距、纸张大小、文档网格</i></span></label>
+        <label class="opt"><input type="checkbox" id="opt-heading" checked><span><b>套用标题格式</b><i>1～9 级标题的字体字号缩进</i></span></label>
+        <label class="opt"><input type="checkbox" id="opt-body" checked><span><b>套用正文格式</b><i>正文的字体字号、行距、首行缩进</i></span></label>
+        <label class="opt"><input type="checkbox" id="opt-caption" checked><span><b>套用题注格式</b><i>图题、表题</i></span></label>
+        <label class="opt"><input type="checkbox" id="opt-heuristic" checked><span><b>智能识别标题</b><i>把「第X章」「1.1」这类手打的标题也认出来</i></span></label>
+        <label class="opt"><input type="checkbox" id="opt-clear" checked><span><b>强制覆盖手工格式</b><i>清掉手工改过的颜色、字体、字号</i></span></label>
+        <label class="opt"><input type="checkbox" id="opt-tableindent" checked><span><b>表格内不加首行缩进</b><i>表格里缩进两格很难看</i></span></label>
+        <label class="opt"><input type="checkbox" id="opt-rules" checked><span><b>清掉遗留的水平线</b><i>网页/AI 对话粘过来的「---」分隔线，在 Word 里是一道灰横杠</i></span></label>
+      </div>
+    </details>
+
+    <button class="run-btn" id="run" disabled>
+      <span class="run-label">开始套用格式</span>
+      <span class="run-spin" hidden>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-6.22-8.56"/></svg>
+      </span>
+    </button>
+    <div class="run-hint" id="run-hint">请先完成上面两步</div>
+
+    <div class="alert err" id="err-box" hidden></div>
+  </section>
+
+  <!-- ═══════════ 结果 ═══════════ -->
+  <section class="card result-card" id="card-result" hidden>
+    <div class="result-head">
+      <div class="ok-badge">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+      </div>
+      <div>
+        <h2>处理完成</h2>
+        <p class="card-desc" id="result-sub"></p>
+      </div>
+    </div>
+
+    <div class="stats" id="stats"></div>
+    <div class="alert note" id="result-note" hidden></div>
+
+    <button class="dl-btn" id="download">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
+      下载排好版的文档
+    </button>
+    <div class="run-hint">再点一次「开始套用格式」可以换一份文档继续处理</div>
+  </section>
+
+  <section class="card tips-card">
+    <h3>使用小贴士</h3>
+    <div class="tips-grid">
+      <div class="tip">
+        <div class="tip-no">01</div>
+        <b>两种方式，按手头情况选</b>
+        <p>老师给了范文、或你手上有格式已经排好的旧稿，就用「上传模板」，一次把整套格式读出来。没有现成的，就用「手动设置格式」逐项配一、二、三级标题和正文，右边有实时预览。</p>
+      </div>
+      <div class="tip">
+        <div class="tip-no">02</div>
+        <b>标题识别有两种方式</b>
+        <p>如果你的文档用了 Word 的标题样式，程序直接按样式识别；如果是手打的「第一章」「1.1」这种，会自动按编号规律猜层级——靠猜的部分建议开着文档核对一遍。</p>
+      </div>
+      <div class="tip">
+        <div class="tip-no">03</div>
+        <b>原文件永远不会被改动</b>
+        <p>处理结果是另存为一个新文件下载给你，源文件在你自己电脑上，程序不会覆盖它。</p>
+      </div>
+      <div class="tip">
+        <div class="tip-no">04</div>
+        <b>老格式 .doc / .wps 要先转一下</b>
+        <p>浏览器读不了 WPS 的老二进制格式。在 WPS 里「另存为」选「.docx」就通用。</p>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="foot">
+  <span>本地处理 · 无后端 · 无上传</span>
+  <span class="dot">·</span>
+  <span>基于 JSZip 与原生 XML 解析实现</span>
+</footer>
+
+<script src="js/jszip.min.js"></script>
+<script src="js/docx-core.js?v=20260927-4"></script>
+<script src="js/format-builder.js?v=20260927-4"></script>
+<script src="js/app.js?v=20260927-4"></script>
+</body>
+</html>

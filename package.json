@@ -1,0 +1,29 @@
+{
+  "name": "docx-format-studio",
+  "version": "1.0.0",
+  "private": true,
+  "description": "纯前端的 DOCX 排版工具：按课程设计/论文规范批量套用字体字号、行距、缩进与页边距，自动识别标题层级与题注，纠正样式错位并清理粘贴残留的水平线",
+  "keywords": [
+    "docx",
+    "ooxml",
+    "word",
+    "formatting",
+    "课程设计"
+  ],
+  "license": "MIT",
+  "scripts": {
+    "test": "node tests/run-all.js",
+    "test:core": "node tests/test-core.js",
+    "test:headings": "node tests/test-headings.js",
+    "test:preset": "node tests/check-report-preset.js",
+    "fixtures": "node tests/make-fixtures.js",
+    "serve": "python -m http.server 8899 --bind 127.0.0.1",
+    "format:one": "node tests/format-one.js"
+  },
+  "devDependencies": {
+    "@xmldom/xmldom": "^0.9.12"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

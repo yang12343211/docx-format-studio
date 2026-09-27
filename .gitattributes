@@ -1,0 +1,17 @@
+# 文本文件统一按 LF 存进仓库，检出时用各平台默认换行
+* text=auto
+
+# 二进制：不要让 git 碰它们
+*.docx binary
+*.doc  binary
+*.xlsx binary
+*.pptx binary
+*.zip  binary
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.ico  binary
+
+# vendored 的第三方库：保留原样
+js/jszip.min.js -diff linguist-vendored
